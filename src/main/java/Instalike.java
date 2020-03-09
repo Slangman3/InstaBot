@@ -1,7 +1,10 @@
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.interactions.Actions;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
@@ -13,9 +16,9 @@ class Instalike {
 
     private final Map<String, String> xpaths = Map.ofEntries(
             entry("Log_in", "//*[contains(text(), 'Log In')]"),
-            entry("Subscribe", "//*[text() = 'Follow']"),
+            entry("Subscribe", "//*[text() = 'Follow' || text() =  'Follow Back']"),
             entry("Subscribed", "//*[text() = 'Following']"),
-            entry("First_photo", "//*[@id='react-root']/section/main/div/div[2]/article/div[1]/div/div[1]/div[1]/a"),
+            entry("First_photo", "//*[@id='react-root']/section/main/div/div[4]/article/div[1]/div/div[1]/div[1]/a"),
             entry("Like_button", "/html/body/div[4]/div[2]/div/article/div[2]/section[1]/span[1]/button"),
             entry("Next_button_first", "//*[@id='react-root']/html/body/div[3]/div/div[1]/div/div/a"),
             entry("Next_button_default", "//*[@id='react-root']/html/body/div[3]/div/div[1]/div/div/a[2]"),
@@ -46,7 +49,8 @@ class Instalike {
         log("InstaBot начал свою работу!");
         browser = new ChromeDriver();
         login();
-        follow(30);
+        openTarget();
+        addFolowers(12);
 //        subscribe();
         findFirst();
         likeCurrent();
@@ -66,47 +70,24 @@ class Instalike {
         log(String.format("Залогинились, как %s", login));
     }
 
-    private boolean follow(int n) {
+    private void openTarget() {
         browser.get(String.format("https://www.instagram.com/%s", target));
         log(String.format("Зашли на страничку к %s", target));
         waitASecond();
         browser.findElement(By.xpath(String.format("//*[@href='/%s/followers/']", target))).click();
         log(String.format("Открыли список фоловеров %s", target));
         waitASecond();
-//        browser.findElement(By.xpath("/html/body/div[4]/div/div[2]/ul/div/li[1]/div/div[1]/div[1]")).sendKeys(Keys.END);
-//        waitASecond();
+    }
 
-
-//        for (int second = 0;; second++) {
-//
-//            if(second >=60){
-//                break;
-//            }
-//            browser.findElement(By.xpath("/html/body/div[4]/div/div[2]/ul/div/li[1]/div/div[1]/div[1]")).sendKeys(Keys.END);
-//            try {
-//                Thread.sleep(500);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
-
-
-
-//        browser.findElements(By.xpath("/html/body/div[4]/div/div[2]/ul/div/li[1]/div/div[1]/div[1]"));
-//
-//        waitASecond();
-//        browser.navigate().back();
-//        waitASecond();
-//        waitASecond();
-//        ArrayList followersList = new ArrayList();
-//        Object[] list = browser.findElements(By.xpath("/html/body/div[4]/div/div[2]/ul/div/li/div/div[1]/div[1]")).toArray();
-
+    private boolean addFolowers(int n) {
         for (int i = 1; i < n; i++) {
-            browser.findElement(By.xpath(String.format("/html/body/div[4]/div/div[2]/ul/div/li[%s]/div/div[1]/div[1]", i))).click();
+            Actions newTab = new Actions(browser);
+            newTab.keyDown(Keys.CONTROL).click(browser.findElement(By.xpath(String.format("/html/body/div[4]/div/div[2]/ul/div/li[%s]/div/div[1]/div[1]", i)))).keyUp(Keys.CONTROL).build().perform();
             waitASecond();
             String userName = browser.findElement(By.xpath("//*[@id='react-root']/section/main/div/header/section/div[1]/h1")).getText();
             log(String.format("Подписываемся на %s.", userName));
+            ArrayList<String> tabs = new ArrayList<String>(browser.getWindowHandles());
+            browser.switchTo().window(tabs.get(1));
             try {
                 browser.findElement(new By.ByXPath(xpaths.get("Subscribe"))).click();
                 waitASecond();
