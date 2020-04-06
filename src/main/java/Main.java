@@ -10,7 +10,7 @@ public class Main {
         var bot = new Instalike(
                 credentials.getLogin(),
                 credentials.getPassword(),
-                "mentoss_2309"
+                "olumov6"
         );
         bot.start();
     }

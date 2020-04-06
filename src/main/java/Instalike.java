@@ -18,7 +18,7 @@ class Instalike {
             entry("Log_in", "//*[contains(text(), 'Log In')]"),
             entry("Subscribe", "//*[text() = 'Follow' || text() =  'Follow Back']"),
             entry("Subscribed", "//*[text() = 'Following']"),
-            entry("First_photo", "//*[@id='react-root']/section/main/div/div[4]/article/div[1]/div/div[1]/div[1]/a"),
+            entry("First_photo", "//*[@id='react-root']/section/main/div/div[4]/article/div[1]/div/div[1]/div[1]"),
             entry("Like_button", "/html/body/div[4]/div[2]/div/article/div[2]/section[1]/span[1]/button"),
             entry("Next_button_first", "//*[@id='react-root']/html/body/div[3]/div/div[1]/div/div/a"),
             entry("Next_button_default", "//*[@id='react-root']/html/body/div[3]/div/div[1]/div/div/a[2]"),
@@ -48,6 +48,7 @@ class Instalike {
     void start() {
         log("InstaBot начал свою работу!");
         browser = new ChromeDriver();
+        browser.manage().window().maximize();
         login();
         openTarget();
         addFolowers(12);
@@ -56,6 +57,7 @@ class Instalike {
         likeCurrent();
         getNext();
         likeCurrent();
+        closeLink();
 //        end();
     }
 
@@ -79,23 +81,31 @@ class Instalike {
         waitASecond();
     }
 
+    public void clickLink() {
+        ArrayList<String> tabs = new ArrayList<String>(browser.getWindowHandles());
+        browser.switchTo().window(tabs.get(1));
+    }
+
+    public void closeLink() {
+        ArrayList<String> tabs = new ArrayList<String>(browser.getWindowHandles());
+        browser.close();
+        browser.switchTo().window(tabs.get(0));
+    }
+
     private boolean addFolowers(int n) {
         for (int i = 1; i < n; i++) {
             Actions newTab = new Actions(browser);
             newTab.keyDown(Keys.CONTROL).click(browser.findElement(By.xpath(String.format("/html/body/div[4]/div/div[2]/ul/div/li[%s]/div/div[1]/div[1]", i)))).keyUp(Keys.CONTROL).build().perform();
+            clickLink();
             waitASecond();
             String userName = browser.findElement(By.xpath("//*[@id='react-root']/section/main/div/header/section/div[1]/h1")).getText();
             log(String.format("Подписываемся на %s.", userName));
-            ArrayList<String> tabs = new ArrayList<String>(browser.getWindowHandles());
-            browser.switchTo().window(tabs.get(1));
             try {
-                browser.findElement(new By.ByXPath(xpaths.get("Subscribe"))).click();
+                browser.findElement(By.xpath("//button[text() = 'Follow']")).click();
                 waitASecond();
-
                 return true;
             } catch (NoSuchElementException ex) {
                 warn("Уже был подписан!");
-
                 return false;
             }
         }
